@@ -94,11 +94,11 @@ export class CarsService {
    */
   async qr(ownerId: string, id: string) {
     const car = await this.requireOwned(ownerId, id);
-    // PUBLIC_QR_BASE_URL: optional origin (e.g. http://172.20.10.2:4200) or full
-    // prefix including /c (e.g. http://172.20.10.2:4200/c). Default is LAN dev web.
+    // PUBLIC_QR_BASE_URL: origin (e.g. https://raken-web.vercel.app) or prefix
+    // ending in /c; trailing slashes stripped; /c appended when missing.
     let base =
       this.config.get<string>('PUBLIC_QR_BASE_URL') ??
-      'http://172.20.10.2:4200/c';
+      'https://raken-web.vercel.app';
     base = base.replace(/\/+$/, '');
     if (!base.endsWith('/c')) {
       base = `${base}/c`;
