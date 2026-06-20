@@ -32,7 +32,9 @@ export class ChatRealtimeService {
   }
 
   isOwnerConnected(ownerId: string) {
-    const room = this.server?.sockets.adapter.rooms.get(this.ownerRoom(ownerId));
+    const room = this.server?.sockets?.adapter?.rooms?.get(
+      this.ownerRoom(ownerId),
+    );
     return (room?.size ?? 0) > 0;
   }
 }
