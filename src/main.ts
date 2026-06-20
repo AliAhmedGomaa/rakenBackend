@@ -1,27 +1,14 @@
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { buildCors } from './cors';
-import { setupSwagger } from './swagger/setup';
+import { createNestApp } from './create-app';
+
+// Fallback export if Vercel still picks up src/main.ts as the function entry.
+export { default } from './lambda';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: buildCors() });
+  const app = await createNestApp();
   const config = app.get(ConfigService);
   const apiPrefix = config.get<string>('API_GLOBAL_PREFIX') ?? 'api';
   const port = config.get<number>('PORT') ?? 3000;
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
-
-  app.setGlobalPrefix(apiPrefix);
-  setupSwagger(app);
 
   await app.listen(port);
   // eslint-disable-next-line no-console
@@ -30,4 +17,6 @@ async function bootstrap() {
   console.log(`📚 Swagger UI at http://localhost:${port}/${apiPrefix}/docs`);
 }
 
-void bootstrap();
+if (!process.env.VERCEL) {
+  void bootstrap();
+}
