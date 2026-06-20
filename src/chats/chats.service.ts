@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Car, CarDocument } from '../common/schemas/car.schema';
 import { Chat, ChatDocument } from '../common/schemas/chat.schema';
+import { ChatRealtimeService } from '../chat-realtime/chat-realtime.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { StartChatDto } from './dto/start-chat.dto';
 
@@ -11,6 +12,7 @@ export class ChatsService {
   constructor(
     @InjectModel(Chat.name) private readonly chatModel: Model<ChatDocument>,
     @InjectModel(Car.name) private readonly carModel: Model<CarDocument>,
+    private readonly realtime: ChatRealtimeService,
   ) {}
 
   list(ownerId: string) {
@@ -72,7 +74,9 @@ export class ChatsService {
       chat.unreadCount = (chat.unreadCount ?? 0) + 1;
     }
     await chat.save();
-    return chat.toJSON();
+    const json = chat.toJSON();
+    this.realtime.emitChatUpdated(json);
+    return json;
   }
 
   async markRead(ownerId: string, id: string) {
@@ -85,7 +89,9 @@ export class ChatsService {
     });
     chat.markModified('messages');
     await chat.save();
-    return chat.toJSON();
+    const json = chat.toJSON();
+    this.realtime.emitChatUpdated(json);
+    return json;
   }
 
   async remove(ownerId: string, id: string) {

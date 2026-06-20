@@ -6,6 +6,8 @@ import { Car, CarDocument } from '../common/schemas/car.schema';
 import { Chat, ChatDocument } from '../common/schemas/chat.schema';
 import { User, UserDocument } from '../common/schemas/user.schema';
 import { QrStickersService } from '../qr-stickers/qr-stickers.service';
+import { ChatRealtimeService } from '../chat-realtime/chat-realtime.service';
+import { PushNotificationsService } from '../chat-realtime/push-notifications.service';
 import { SendContactDto } from './dto/send-contact.dto';
 
 export type PublicCarView = {
@@ -45,6 +47,8 @@ export class PublicService {
     @InjectModel(Chat.name) private readonly chatModel: Model<ChatDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly qrStickers: QrStickersService,
+    private readonly realtime: ChatRealtimeService,
+    private readonly push: PushNotificationsService,
   ) {}
 
   /**
@@ -144,6 +148,19 @@ export class PublicService {
     });
     chat.unreadCount = (chat.unreadCount ?? 0) + 1;
     await chat.save();
+
+    const json = chat.toJSON();
+    this.realtime.emitChatUpdated(json);
+
+    const ownerId = car.ownerId.toString();
+    if (!this.realtime.isOwnerConnected(ownerId)) {
+      void this.push.notifyOwnerNewMessage(ownerId, {
+        chatId: chat.id,
+        carPlate: chat.carPlate,
+        participantLabel: chat.participantLabel,
+        preview: dto.text.trim(),
+      });
+    }
 
     return {
       ok: true,

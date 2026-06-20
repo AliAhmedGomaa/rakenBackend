@@ -15,6 +15,8 @@ async function bootstrap() {
   console.log(`🚀 Raken API listening on http://localhost:${port}/${apiPrefix}`);
   // eslint-disable-next-line no-console
   console.log(`📚 Swagger UI at http://localhost:${port}/${apiPrefix}/docs`);
+  // eslint-disable-next-line no-console
+  console.log(`🔌 Chat WebSocket at ws://localhost:${port}/chat`);
 }
 
 if (!process.env.VERCEL && require.main === module) {

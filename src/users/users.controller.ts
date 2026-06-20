@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Put, UseGuards } from '@nestjs/common';
 import { AuthUser, CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
@@ -6,6 +6,7 @@ import {
   UsersMeDocs,
   UsersUpdateMeDocs,
 } from '../swagger/docs';
+import { RegisterPushTokenDto } from './dto/register-push-token.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UsersService } from './users.service';
 
@@ -28,5 +29,13 @@ export class UsersController {
     @Body() dto: UpdateProfileDto,
   ) {
     return this.users.update(user.id, dto);
+  }
+
+  @Put('me/push-token')
+  registerPushToken(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: RegisterPushTokenDto,
+  ) {
+    return this.users.registerPushToken(user.id, dto);
   }
 }

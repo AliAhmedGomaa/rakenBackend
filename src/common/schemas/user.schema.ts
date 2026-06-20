@@ -25,6 +25,23 @@ export class User {
 
   @Prop({ required: true, enum: ['owner', 'admin'], default: 'owner' })
   role!: UserRole;
+
+  /** FCM device tokens for chat push notifications. */
+  @Prop({
+    type: [
+      {
+        token: { type: String, required: true },
+        platform: { type: String, enum: ['ios', 'android'], required: true },
+        updatedAt: { type: Date, default: Date.now },
+      },
+    ],
+    default: [],
+  })
+  pushTokens!: Array<{
+    token: string;
+    platform: 'ios' | 'android';
+    updatedAt: Date;
+  }>;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

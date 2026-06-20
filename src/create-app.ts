@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { buildCors } from './cors';
@@ -24,6 +25,10 @@ export async function createNestApp(): Promise<NestExpressApplication> {
 
   app.setGlobalPrefix(apiPrefix);
   setupSwagger(app);
+
+  if (!process.env.VERCEL) {
+    app.useWebSocketAdapter(new IoAdapter(app));
+  }
 
   return app;
 }

@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Car, CarSchema } from '../common/schemas/car.schema';
 import { Chat, ChatSchema } from '../common/schemas/chat.schema';
 import { User, UserSchema } from '../common/schemas/user.schema';
+import { ChatRealtimeModule } from '../chat-realtime/chat-realtime.module';
 import { QrStickersModule } from '../qr-stickers/qr-stickers.module';
 import { PublicController } from './public.controller';
 import { PublicService } from './public.service';
@@ -15,6 +16,7 @@ import { PublicService } from './public.service';
       { name: User.name, schema: UserSchema },
     ]),
     QrStickersModule,
+    ChatRealtimeModule,
   ],
   controllers: [PublicController],
   providers: [PublicService],
