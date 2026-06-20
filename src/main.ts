@@ -17,6 +17,6 @@ async function bootstrap() {
   console.log(`📚 Swagger UI at http://localhost:${port}/${apiPrefix}/docs`);
 }
 
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && require.main === module) {
   void bootstrap();
 }
