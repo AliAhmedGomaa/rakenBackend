@@ -1,9 +1,8 @@
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
 import { createNestApp } from './bootstrap';
 
-export { default } from './serverless';
-
-async function startLocal() {
+async function bootstrap() {
   const app = await createNestApp();
   const config = app.get(ConfigService);
   const apiPrefix = config.get<string>('API_GLOBAL_PREFIX') ?? 'api';
@@ -20,6 +19,5 @@ async function startLocal() {
   );
 }
 
-if (!process.env.VERCEL) {
-  void startLocal();
-}
+// Required for Vercel zero-config NestJS entrypoint detection.
+void bootstrap();
