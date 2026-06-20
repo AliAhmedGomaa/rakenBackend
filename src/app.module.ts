@@ -10,10 +10,14 @@ import { ChatsModule } from './chats/chats.module';
 import { PublicModule } from './public/public.module';
 import { QrStickersModule } from './qr-stickers/qr-stickers.module';
 import { UsersModule } from './users/users.module';
+import { validateEnv } from './config/env.validation';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: validateEnv,
+    }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
