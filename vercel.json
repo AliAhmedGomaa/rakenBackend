@@ -2,7 +2,7 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "functions": {
-    "dist/lambda.js": {
+    "api/index.js": {
       "memory": 1024,
       "maxDuration": 30
     }
@@ -10,7 +10,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/dist/lambda.js"
+      "destination": "/api/index.js"
     }
   ]
 }
