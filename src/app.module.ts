@@ -11,7 +11,6 @@ import { PublicModule } from './public/public.module';
 import { QrStickersModule } from './qr-stickers/qr-stickers.module';
 import { UsersModule } from './users/users.module';
 import { validateEnv } from './config/env.validation';
-import { mongooseServerlessOptions } from './mongoose.config';
 
 @Module({
   imports: [
@@ -23,7 +22,6 @@ import { mongooseServerlessOptions } from './mongoose.config';
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
         uri: config.getOrThrow<string>('MONGODB_URI'),
-        ...mongooseServerlessOptions,
       }),
       inject: [ConfigService],
     }),
