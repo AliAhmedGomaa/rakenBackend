@@ -1,0 +1,10 @@
+export { applyDocs } from './apply-docs';
+export * from './health.docs';
+export * from './auth.docs';
+export * from './users.docs';
+export * from './cars.docs';
+export * from './chats.docs';
+export * from './public.docs';
+export * from './dashboard.docs';
+export * from './qr-stickers.docs';
+export * from './admin.docs';

@@ -3,10 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { CarsModule } from './cars/cars.module';
 import { ChatsModule } from './chats/chats.module';
 import { PublicModule } from './public/public.module';
+import { QrStickersModule } from './qr-stickers/qr-stickers.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -20,9 +22,11 @@ import { UsersModule } from './users/users.module';
       inject: [ConfigService],
     }),
     AuthModule,
+    AdminModule,
     UsersModule,
     CarsModule,
     ChatsModule,
+    QrStickersModule,
     PublicModule,
   ],
   controllers: [AppController],

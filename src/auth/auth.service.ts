@@ -31,6 +31,7 @@ export class AuthService {
       email,
       phone: dto.phone?.trim(),
       passwordHash,
+      role: 'owner',
     });
 
     return this.buildSession(created);

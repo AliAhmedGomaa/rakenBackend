@@ -42,6 +42,10 @@ export class Car {
 
   @Prop({ required: true, enum: ['active', 'paused'], default: 'active' })
   status!: CarStatus;
+
+  /** Assigned pre-printed QR sticker code (unique across fleet). */
+  @Prop({ trim: true, unique: true, sparse: true, index: true })
+  qrCode?: string;
 }
 
 export const CarSchema = SchemaFactory.createForClass(Car);

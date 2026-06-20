@@ -3,19 +3,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import * as QRCode from 'qrcode';
 import { Car, CarDocument } from '../common/schemas/car.schema';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
+import { QrStickersService } from '../qr-stickers/qr-stickers.service';
 
 @Injectable()
 export class CarsService {
   constructor(
     @InjectModel(Car.name) private readonly carModel: Model<CarDocument>,
-    private readonly config: ConfigService,
+    private readonly qrStickers: QrStickersService,
   ) {}
 
   list(ownerId: string) {
@@ -27,9 +26,10 @@ export class CarsService {
   }
 
   async create(ownerId: string, dto: CreateCarDto) {
+    const sticker = await this.qrStickers.requireUnassigned(dto.qrCode);
+    const normalizedCode = sticker.code;
+
     try {
-      // Mongoose's `create()` typing conflicts with our `model` field name,
-      // so we build a new document via `new this.carModel(...)` instead.
       const doc = new this.carModel({
         ownerId: new Types.ObjectId(ownerId),
         plate: dto.plate.trim(),
@@ -39,11 +39,24 @@ export class CarsService {
         color: dto.color,
         nickname: dto.nickname?.trim() || undefined,
         status: dto.status ?? 'active',
+        qrCode: normalizedCode,
       });
       const car = await doc.save();
+      await this.qrStickers.assignToCar(
+        normalizedCode,
+        car._id,
+        ownerId,
+      );
       return car.toJSON();
     } catch (err) {
       if ((err as { code?: number }).code === 11000) {
+        const key = (err as { keyPattern?: Record<string, unknown> })
+          .keyPattern;
+        if (key?.qrCode) {
+          throw new ConflictException(
+            'This QR sticker is already linked to another car.',
+          );
+        }
         throw new ConflictException(
           'You already have a car registered with this plate.',
         );
@@ -82,35 +95,23 @@ export class CarsService {
 
   async remove(ownerId: string, id: string) {
     const car = await this.requireOwned(ownerId, id);
+    await this.qrStickers.unassignByCarId(car._id);
     await car.deleteOne();
     return { ok: true };
   }
 
-  /**
-   * Builds the QR payload for a car. The QR encodes a deep link / URL that
-   * a stranger can scan to reach the anonymous contact flow for that car.
-   * Returns both the raw payload and a data-URI image so the client can
-   * decide how to render it.
-   */
   async qr(ownerId: string, id: string) {
     const car = await this.requireOwned(ownerId, id);
-    // PUBLIC_QR_BASE_URL: origin (e.g. https://raken-web.vercel.app) or prefix
-    // ending in /c; trailing slashes stripped; /c appended when missing.
-    let base =
-      this.config.get<string>('PUBLIC_QR_BASE_URL') ??
-      'https://raken-web.vercel.app';
-    base = base.replace(/\/+$/, '');
-    if (!base.endsWith('/c')) {
-      base = `${base}/c`;
+    if (!car.qrCode) {
+      throw new NotFoundException(
+        'No QR sticker is linked to this car. Scan a printed sticker when adding the car.',
+      );
     }
-    const url = `${base}/${car.id}`;
-    const dataUrl = await QRCode.toDataURL(url, {
-      margin: 1,
-      width: 512,
-      color: { dark: '#0F1226', light: '#FFFFFF' },
-    });
+    const url = this.qrStickers.buildPublicUrl(car.qrCode);
+    const dataUrl = await this.qrStickers.renderDataUrl(car.qrCode);
     return {
       carId: car.id,
+      qrCode: car.qrCode,
       plate: car.plate,
       url,
       dataUrl,

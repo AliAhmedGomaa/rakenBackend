@@ -1,7 +1,9 @@
 import type { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { setupSwagger } from './swagger/setup';
 
 function buildCors(): CorsOptions {
   const origins = process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean);
@@ -40,6 +42,8 @@ function buildCors(): CorsOptions {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: buildCors() });
+  const config = app.get(ConfigService);
+  const apiPrefix = config.get<string>('API_GLOBAL_PREFIX') ?? 'api';
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -50,11 +54,19 @@ async function bootstrap() {
     }),
   );
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix(apiPrefix);
 
-  const port = process.env.PORT ?? 3000;
+  setupSwagger(app);
+
+  const port = config.get<number>('PORT') ?? 3000;
   await app.listen(port);
   // eslint-disable-next-line no-console
-  console.log(`🚀 Raken API listening on http://localhost:${port}/api`);
+  console.log(
+    `🚀 Raken API listening on http://localhost:${port}/${apiPrefix}`,
+  );
+  // eslint-disable-next-line no-console
+  console.log(
+    `📚 Swagger UI at http://localhost:${port}/${apiPrefix}/docs`,
+  );
 }
 void bootstrap();
